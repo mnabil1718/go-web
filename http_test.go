@@ -28,6 +28,16 @@ func HeaderHandler(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprintln(writer, "OK")
 }
 
+func FormPostHandler(writer http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	// request.PostFormValue("first_name") # alternative way to get post form value without parsing
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintf(writer, "Hello, %s %s!\n", request.PostForm.Get("first_name"), request.PostForm.Get("last_name"))
+}
+
 func TestHttp(t *testing.T) {
 	request := httptest.NewRequest("GET", "http://localhost:8080", nil)
 	recorder := httptest.NewRecorder()
@@ -75,4 +85,21 @@ func TestHeader(t *testing.T) {
 
 	fmt.Println("header:", response.Header)
 	fmt.Println("body:", string(body))
+}
+
+func TestFormPost(t *testing.T) {
+	requestBody := strings.NewReader("first_name=Muhammad&last_name=Nabil")
+	request := httptest.NewRequest(http.MethodPost, "http://localhost:8080", requestBody)
+	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	record := httptest.NewRecorder()
+
+	FormPostHandler(record, request)
+
+	response := record.Result()
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(body))
 }
