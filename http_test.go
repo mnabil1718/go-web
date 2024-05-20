@@ -16,7 +16,7 @@ func SayHelloQueryParam(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprintln(writer, strings.Join(names, " "))
 }
 
-func ExampleHandler(writer http.ResponseWriter, request *http.Request) {
+func Handler(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprintln(writer, "Hello")
 }
 
@@ -32,7 +32,7 @@ func TestHttp(t *testing.T) {
 	request := httptest.NewRequest("GET", "http://localhost:8080", nil)
 	recorder := httptest.NewRecorder()
 
-	ExampleHandler(recorder, request)
+	Handler(recorder, request)
 
 	response := recorder.Result()
 	body, err := io.ReadAll(response.Body)
