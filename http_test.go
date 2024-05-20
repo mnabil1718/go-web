@@ -20,6 +20,14 @@ func ExampleHandler(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprintln(writer, "Hello")
 }
 
+func HeaderHandler(writer http.ResponseWriter, request *http.Request) {
+	contentType := request.Header.Get("Content-Type")
+	fmt.Println(contentType)
+	writer.Header().Add("X-Powered-By", "Tingkatin")
+	writer.Header().Add("Content-Type-2", contentType)
+	fmt.Fprintln(writer, "OK")
+}
+
 func TestHttp(t *testing.T) {
 	request := httptest.NewRequest("GET", "http://localhost:8080", nil)
 	recorder := httptest.NewRecorder()
@@ -50,4 +58,21 @@ func TestQueryParam(t *testing.T) {
 
 	fmt.Println(response.StatusCode)
 	fmt.Println(string(body))
+}
+
+func TestHeader(t *testing.T) {
+	request := httptest.NewRequest("GET", "http://localhost:8080?name=Muhammad&name=Eko", nil)
+	request.Header.Add("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+
+	HeaderHandler(recorder, request)
+
+	response := recorder.Result()
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("header:", response.Header)
+	fmt.Println("body:", string(body))
 }
