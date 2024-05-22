@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func SayHelloQueryParam(writer http.ResponseWriter, request *http.Request) {
@@ -36,6 +38,16 @@ func FormPostHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	fmt.Fprintf(writer, "Hello, %s %s!\n", request.PostForm.Get("first_name"), request.PostForm.Get("last_name"))
+}
+
+func ResponseCodeHandler(writer http.ResponseWriter, request *http.Request) {
+	name := request.URL.Query().Get("name")
+	if name == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Bad request. Name is empty")
+	} else {
+		fmt.Fprintf(writer, "Hello %s", name)
+	}
 }
 
 func TestHttp(t *testing.T) {
@@ -102,4 +114,21 @@ func TestFormPost(t *testing.T) {
 	}
 
 	fmt.Println(string(body))
+}
+
+func TestResponseCode(t *testing.T) {
+	request1 := httptest.NewRequest("GET", "http://localhost:8080", nil)
+	request2 := httptest.NewRequest("GET", "http://localhost:8080?name=Nabil", nil)
+	recorder1 := httptest.NewRecorder()
+	recorder2 := httptest.NewRecorder()
+
+	ResponseCodeHandler(recorder1, request1)
+	ResponseCodeHandler(recorder2, request2)
+
+	response1 := recorder1.Result()
+	response2 := recorder2.Result()
+
+	assert.Equal(t, http.StatusBadRequest, response1.StatusCode, "Response code should be 400")
+	assert.Equal(t, http.StatusOK, response2.StatusCode, "Response code should be 200")
+
 }
