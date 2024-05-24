@@ -1,0 +1,57 @@
+{{/* Conventionally it is not recommended to stack all templates inside 1 gohtml file */}}
+{{/* This is done as a demonstration that 1 file can contain many templates and nests them interchangably */}}
+
+{{ define "layout" }}
+<!DOCTYPE html>
+<html>
+  {{ template "head" .Title }}
+  <body>
+    {{ template "header" .Header }}
+
+    {{ template "nav" .Navigation }}
+
+    {{ template "main" .Content }}
+
+    {{ template "footer" }}
+  </body>
+</html>
+{{ end }}
+
+{{ define "head" }}
+<head>
+  <title>{{ . }}</title>
+</head>
+{{ end }}
+
+{{ define "header" }}
+<header>
+  <h1>{{ . }}</h1>
+</header>
+{{ end }}
+
+{{ define "nav" }}
+<nav>
+  <ul>
+    {{ range $index, $navItem := . }}
+    <li>
+      <a href="{{ $navItem.Link }}">{{ $navItem.Label }}</a>
+    </li>
+    {{
+      end
+    }}
+  </ul>
+</nav>
+{{ end }}
+
+{{ define "footer" }}
+<footer>
+  <p>&copy; 2022 My Web Page. All rights reserved.</p>
+</footer>
+{{ end }}
+
+{{ define "main" }}
+<main>
+  <h2>{{ .Title }}</h2>
+  <p>T{{ .Paragraph }}</p>
+</main>
+{{ end }}

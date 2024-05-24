@@ -20,6 +20,23 @@ type Address struct {
 	City   string
 }
 
+type NavItem struct {
+	Label string
+	Link  string
+}
+
+type Content struct {
+	Title     string
+	Paragraph string
+}
+
+type Page struct {
+	Title      string
+	Header     string
+	Navigation []NavItem
+	Content    Content
+}
+
 func TemplateHandler(writer http.ResponseWriter, request *http.Request) {
 	template := template.Must(template.ParseFiles("./templates/name.gohtml"))
 
@@ -55,7 +72,33 @@ func TemplateActionHandler(writer http.ResponseWriter, request *http.Request) {
 		"Address": address,
 		"Friends": friends,
 	})
+}
 
+func TemplateLayoutHandler(writer http.ResponseWriter, request *http.Request) {
+
+	template := template.Must(template.ParseFiles("./templates/layouts.gohtml"))
+	template.ExecuteTemplate(writer, "layout", Page{
+		Title:  "Page Title",
+		Header: "Page Header",
+		Navigation: []NavItem{
+			{
+				Label: "Home",
+				Link:  "/",
+			},
+			{
+				Label: "About",
+				Link:  "/about",
+			},
+			{
+				Label: "Projects",
+				Link:  "/projects",
+			},
+		},
+		Content: Content{
+			Title:     "Content Title",
+			Paragraph: "Example Paragraph. Not too long tho.",
+		},
+	})
 }
 
 func TestTemplate(t *testing.T) {
@@ -73,6 +116,16 @@ func TestActionTemplate(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	TemplateActionHandler(recorder, request)
+
+	body, _ := io.ReadAll(recorder.Result().Body)
+	fmt.Println(string(body))
+}
+
+func TestLayoutTemplate(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "http://localhost:8080", nil)
+	recorder := httptest.NewRecorder()
+
+	TemplateLayoutHandler(recorder, request)
 
 	body, _ := io.ReadAll(recorder.Result().Body)
 	fmt.Println(string(body))
