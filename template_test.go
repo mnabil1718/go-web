@@ -1,6 +1,7 @@
 package goweb
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"io"
@@ -39,6 +40,16 @@ type Page struct {
 	Content    Content
 }
 
+//go:embed templates/*.gohtml
+var templatesFiles embed.FS
+
+// template.New("") will be used as base template for all template files
+var parsedTemplates = template.Must(template.New("").Funcs(map[string]any{
+	"upper": func(s string) string {
+		return strings.ToUpper(s)
+	},
+}).ParseFS(templatesFiles, "templates/*.gohtml"))
+
 // NOTICE: the page Page type cannot be pointer otherwise it wont work in the template. Bloody hell
 // I spent too much time looking to this bug. The error message is not helpful at all.
 func (page Page) SayWelcome() string {
@@ -46,10 +57,8 @@ func (page Page) SayWelcome() string {
 }
 
 func TemplateHandler(writer http.ResponseWriter, request *http.Request) {
-	template := template.Must(template.ParseFiles("./templates/name.gohtml"))
-
 	// data could be passed as nested struct or nested maps. I choose to combine both
-	template.ExecuteTemplate(writer, "name.gohtml", map[string]any{
+	parsedTemplates.ExecuteTemplate(writer, "name.gohtml", map[string]any{
 		"Title": "Example Page",
 		"Body": Body{
 			Heading:   "Example Heading",
@@ -72,9 +81,7 @@ func TemplateActionHandler(writer http.ResponseWriter, request *http.Request) {
 			City:   city,
 		}
 	}
-
-	template := template.Must(template.ParseFiles("./templates/template-action.gohtml"))
-	template.ExecuteTemplate(writer, "template-action.gohtml", map[string]any{
+	parsedTemplates.ExecuteTemplate(writer, "template-action.gohtml", map[string]any{
 		"Title":   "Page Title",
 		"Name":    name,
 		"Address": address,
@@ -84,13 +91,7 @@ func TemplateActionHandler(writer http.ResponseWriter, request *http.Request) {
 
 func TemplateLayoutHandler(writer http.ResponseWriter, request *http.Request) {
 
-	t := template.Must(template.New("layouts").Funcs(map[string]any{
-		"upper": func(s string) string {
-			return strings.ToUpper(s)
-		},
-	}).ParseFiles("./templates/layouts.gohtml"))
-
-	t.ExecuteTemplate(writer, "layouts", Page{
+	parsedTemplates.ExecuteTemplate(writer, "layouts", Page{
 		Name:   "Nabil",
 		Title:  "Page Title",
 		Header: "Page Header",
