@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -31,10 +32,17 @@ type Content struct {
 }
 
 type Page struct {
+	Name       string
 	Title      string
 	Header     string
 	Navigation []NavItem
 	Content    Content
+}
+
+// NOTICE: the page Page type cannot be pointer otherwise it wont work in the template. Bloody hell
+// I spent too much time looking to this bug. The error message is not helpful at all.
+func (page Page) SayWelcome() string {
+	return "Welcome, " + page.Name + "!"
 }
 
 func TemplateHandler(writer http.ResponseWriter, request *http.Request) {
@@ -76,8 +84,14 @@ func TemplateActionHandler(writer http.ResponseWriter, request *http.Request) {
 
 func TemplateLayoutHandler(writer http.ResponseWriter, request *http.Request) {
 
-	template := template.Must(template.ParseFiles("./templates/layouts.gohtml"))
-	template.ExecuteTemplate(writer, "layout", Page{
+	t := template.Must(template.New("layouts").Funcs(map[string]any{
+		"upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+	}).ParseFiles("./templates/layouts.gohtml"))
+
+	t.ExecuteTemplate(writer, "layouts", Page{
+		Name:   "Nabil",
 		Title:  "Page Title",
 		Header: "Page Header",
 		Navigation: []NavItem{
