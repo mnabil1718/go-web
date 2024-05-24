@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ .Title }}</title>
+  </head>
+  <body>
+    {{ if ne .Name "" }}
+    <h1>Welcome Back, {{ .Name }}!</h1>
+    {{ else }}
+    <h1>Welcome Back!</h1>
+    {{ end }}
+
+    {{ if ne .Address nil }}
+    {{ with.Address }}
+    <p>Your address is</p>
+    <p>Your Street is: {{ .Street }}</p>
+    <p>Your City is: {{ .City }}</p>
+    {{ end }}
+    {{ else }}
+    <p>You have no address. Are you homeless?</p>
+    {{ end }}
+
+    {{ if .Friends }}
+    <ul>
+      <li>Your List of friends:</li>
+      {{ range $index, $friend := .Friends }}
+      <li>{{ $friend }}</li>
+      {{
+        end
+      }}
+    </ul>
+    {{ else }}
+    <p>You have no friends. Get a life</p>
+    {{ end }}
+  </body>
+</html>

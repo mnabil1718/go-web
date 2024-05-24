@@ -6,12 +6,18 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
 type Body struct {
 	Heading   string
 	Paragraph string
+}
+
+type Address struct {
+	Street string
+	City   string
 }
 
 func TemplateHandler(writer http.ResponseWriter, request *http.Request) {
@@ -27,11 +33,46 @@ func TemplateHandler(writer http.ResponseWriter, request *http.Request) {
 	})
 }
 
+func TemplateActionHandler(writer http.ResponseWriter, request *http.Request) {
+	var values url.Values = request.URL.Query()
+	var address Address            // nil struct, can be checks in template
+	name := values.Get("name")     // single value
+	street := values.Get("street") //single value
+	city := values.Get("city")     // single value
+	friends := values["friend"]    // array of friends
+
+	if street != "" && city != "" {
+		address = Address{
+			Street: street,
+			City:   city,
+		}
+	}
+
+	template := template.Must(template.ParseFiles("./templates/template-action.gohtml"))
+	template.ExecuteTemplate(writer, "template-action.gohtml", map[string]any{
+		"Title":   "Page Title",
+		"Name":    name,
+		"Address": address,
+		"Friends": friends,
+	})
+
+}
+
 func TestTemplate(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 	recorder := httptest.NewRecorder()
 
 	TemplateHandler(recorder, request)
+
+	body, _ := io.ReadAll(recorder.Result().Body)
+	fmt.Println(string(body))
+}
+
+func TestActionTemplate(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "http://localhost:8080?name=Nabil&city=Bogor&street=Jl.%20Pengangsaan%20Timur&friend=Tina&friend=Joni", nil)
+	recorder := httptest.NewRecorder()
+
+	TemplateActionHandler(recorder, request)
 
 	body, _ := io.ReadAll(recorder.Result().Body)
 	fmt.Println(string(body))
