@@ -8,5 +8,6 @@
   <body>
     <h1>{{ .Name }}</h1>
     <a href="{{ .File.FileURL }}">{{ .File.Filename }}</a>
+    <a href="/download?filename={{ .File.Filename }}">Download</a>
   </body>
 </html>

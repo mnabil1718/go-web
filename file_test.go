@@ -12,6 +12,18 @@ import (
 	"testing"
 )
 
+func FileDownload(writer http.ResponseWriter, request *http.Request) {
+
+	filename := request.URL.Query().Get("filename")
+	if filename == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(writer, "Bad Request. Filename is required")
+	}
+
+	writer.Header().Add(`Content-Disposition`, `attachment; filename="`+filename+`"`)
+	http.ServeFile(writer, request, "./resources/upload/"+filename)
+}
+
 func DisplayUploadForm(writer http.ResponseWriter, request *http.Request) {
 
 	// parsedTemplates embed FS already declared in this block
@@ -60,10 +72,11 @@ func FileUpload(writer http.ResponseWriter, request *http.Request) {
 	})
 }
 
-func TestFileUploadServer(t *testing.T) {
+func TestFileRequestServer(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/form", DisplayUploadForm)
 	mux.HandleFunc("/upload", FileUpload)
+	mux.HandleFunc("/download", FileDownload)
 	// without StripPrefix, the url would be: /resources/upload/static/filename
 	// which doesnt exists. Thats why we do StripPrefix
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./resources/upload"))))
@@ -95,5 +108,4 @@ func TestUpload(t *testing.T) {
 
 	bodyResponse, _ := io.ReadAll(recorder.Result().Body)
 	fmt.Println(string(bodyResponse))
-
 }
